@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Day Organizer Pro</title>
+    <!-- خطوط جوجل -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- أيقونات FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبة التقويم التفاعلي -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    
+    <style>
+        /* 1. نظام الألوان الديناميكي */
+        :root {
+            --primary: #4F46E5;
+            --secondary: #6366F1;
+            --bg-color: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            --chat-ai-bg: #F3F4F6;
+            --border-color: #E5E7EB;
+        }
+
+        [data-theme="dark"] {
+            --primary: #818CF8;
+            --secondary: #6366F1;
+            --bg-color: #111827;
+            --card-bg: #1F2937;
+            --text-main: #F9FAFB;
+            --text-muted: #9CA3AF;
+            --chat-ai-bg: #374151;
+            --border-color: #4B5563;
+        }
+
+        [data-theme="green"] {
+            --primary: #10B981;
+            --secondary: #34D399;
+        }
+
+        body {
+            font-family: 'Inter', 'Tajawal', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* 2. التحكم بالألوان (Theme Switcher) */
+        .theme-switcher {
+            width: 100%;
+            max-width: 1200px;
+            padding: 15px 20px 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .theme-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: transform 0.2s;
+        }
+        .theme-btn:hover { transform: scale(1.05); }
+        .btn-light { background: #FFFFFF; color: #1F2937; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-dark { background: #1F2937; color: #FFFFFF; border: 1px solid #374151; }
+        .btn-green { background: #10B981; color: #FFFFFF; }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+        }
+
+        /* 3. الهيدر الأصلي */
+        .header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 20px 40px;
+            border-radius: 16px;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0; font-size: 24px; display: flex; align-items: center; gap: 12px; }
+
+        .btn-schedule {
+            background-color: white;
+            color: var(--primary);
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-schedule:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+
+        /* 4. البطاقات والتقويم */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02), 0 10px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        #calendar {
+            max-height: 600px;
+            background: var(--card-bg);
+            color: var(--text-main);
+        }
+
+        /* 5. الدردشة الأصلية بالكامل */
+        .chat-container { display: flex; flex-direction: column; height: 600px; }
+        .chat-history {
+            flex-grow: 1; overflow-y: auto; padding: 10px;
+            display: flex; flex-direction: column; gap: 15px; scroll-behavior: smooth;
+        }
+        .message {
+            max-width: 85%; padding: 12px 16px; border-radius: 12px; font-size: 15px; line-height: 1.5;
+        }
+        .user-msg {
+            background-color: var(--primary); color: white;
+            align-self: flex-end; border-bottom-right-radius: 4px;
+        }
+        .ai-msg {
+            background-color: var(--chat-ai-bg); color: var(--text-main);
+            align-self: flex-start; border-bottom-left-radius: 4px;
+        }
+        .ai-icon { color: var(--primary); margin-right: 5px; }
+
+        .chat-input-area { display: flex; gap: 10px; margin-top: 20px; }
+        .chat-input-area input {
+            flex-grow: 1; padding: 14px 18px;
+            background: var(--bg-color); color: var(--text-main);
+            border: 1px solid var(--border-color); border-radius: 10px;
+            font-size: 15px; outline: none;
+        }
+        .chat-input-area input:focus { border-color: var(--primary); }
+        .chat-input-area button {
+            background-color: var(--primary); color: white; border: none;
+            padding: 0 20px; border-radius: 10px; cursor: pointer; transition: background 0.3s;
+        }
+        .chat-input-area button:hover { background-color: var(--secondary); }
+
+        @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <!-- أزرار اختيار الألوان -->
+    <div class="theme-switcher">
+        <button class="theme-btn btn-light" onclick="setTheme('light')"><i class="fa-solid fa-sun"></i> Light</button>
+        <button class="theme-btn btn-dark" onclick="setTheme('dark')"><i class="fa-solid fa-moon"></i> Dark</button>
+        <button class="theme-btn btn-green" onclick="setTheme('green')"><i class="fa-solid fa-leaf"></i> Focus</button>
+    </div>
+
+    <div class="container">
+        <!-- الهيدر الأصلي -->
+        <div class="header">
+            <h1><i class="fa-solid fa-layer-group"></i> Smart Day Organizer</h1>
+            <form action="/auto_schedule" method="POST" style="margin: 0;">
+                <button type="submit" class="btn-schedule">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Schedule Day
+                </button>
+            </form>
+        </div>
+
+        <!-- التقويم بدلاً من القائمة النصية القديمة -->
+        <div class="card">
+            <h2 class="card-title"><i class="fa-regular fa-calendar-days"></i> My Daily Calendar</h2>
+            <div id="calendar"></div>
+        </div>
+
+        <!-- صندوق الدردشة الأصلي بكامل مميزاته -->
+        <div class="card chat-container">
+            <h2 class="card-title"><i class="fa-solid fa-robot" style="color: var(--primary);"></i> Agentic AI Assistant</h2>
+            
+            <div class="chat-history" id="chat-box">
+                <div class="message ai-msg">
+                    <i class="fa-solid fa-robot ai-icon"></i> Hello! I'm your AI Agent. Ask me to add tasks, or run algorithms. The calendar will update automatically!
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="e.g., Add a task 'Review Code' for 30 mins..." onkeypress="handleKeyPress(event)">
+                <button onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. نظام الألوان (Theme Logic) ---
+        function setTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            localStorage.setItem('theme', themeName);
+        }
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+
+        // --- 2. كود التقويم (FullCalendar) ---
+        var calendar; // نجعله متغير عام لنتمكن من تحديثه بعد الدردشة
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridDay',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'timeGridDay,listWeek' },
+                slotMinTime: '08:00:00', // بداية اليوم 8 صباحاً
+                slotMaxTime: '23:00:00', // نهاية اليوم 11 مساءً
+                events: '/api/tasks', // يسحب المهام من قاعدة البيانات تلقائياً
+                allDaySlot: false,
+                height: 500
+            });
+            calendar.render();
+        });
+
+        // --- 3. كود الدردشة الأصلي (Chat Logic) ---
+        function handleKeyPress(event) {
+            if (event.key === "Enter") { sendMessage(); }
+        }
+
+        function sendMessage() {
+            var inputField = document.getElementById("chat-input");
+            var message = inputField.value.trim();
+            if (message === "") return;
+
+            var chatBox = document.getElementById("chat-box");
+            
+            // رسالة المستخدم
+            var userBubble = `<div class="message user-msg">${message}</div>`;
+            chatBox.innerHTML += userBubble;
+            inputField.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // رسالة التحميل (Thinking)
+            var loadingId = "loading-" + Date.now();
+            var loadingBubble = `<div id="${loadingId}" class="message ai-msg"><i class="fa-solid fa-circle-notch fa-spin ai-icon"></i> Thinking...</div>`;
+            chatBox.innerHTML += loadingBubble;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // الإرسال للسيرفر
+            fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById(loadingId).remove();
+                var aiBubble = `<div class="message ai-msg"><i class="fa-solid fa-robot ai-icon"></i> ${data.reply}</div>`;
+                chatBox.innerHTML += aiBubble;
+                chatBox.scrollTop = chatBox.scrollHeight;
+                
+                // تحديث التقويم فوراً بعد أن يرد الذكاء الاصطناعي (ميزة جديدة!)
+                if(calendar) { calendar.refetchEvents(); }
+            })
+            .catch(error => {
+                document.getElementById(loadingId).remove();
+                var errorBubble = `<div class="message ai-msg" style="background: #FEE2E2; color: #DC2626;"><i class="fa-solid fa-triangle-exclamation"></i> Error connecting to Agent.</div>`;
+                chatBox.innerHTML += errorBubble;
+            });
+        }
+    </script>
+</body>
+</html>
